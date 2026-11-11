@@ -1,0 +1,77 @@
+# =============================================================================
+# 05-settings-crash.mpatch  -  "Configuration" screen no longer crashes
+# -----------------------------------------------------------------------------
+# Why: PreferenceActivity.isValidFragment() returns true by default only for
+#      apps targeting SDK < 19. After the target bump (patch 06), opening any
+#      settings category threw "Subclasses of PreferenceActivity must override
+#      isValidFragment". (Also hit the first-run wizard, InitPreferences, which
+#      inherits from MainPreferences.)
+# Fix: add isValidFragment(String) to MainPreferences and HelpPreferences.
+#      Equivalent Java (see source/de/stohelit/audiobookplayer/IsValidFragmentExample.java):
+#          protected boolean isValidFragment(String name) {
+#              return name != null && name.startsWith("de.stohelit.audiobookplayer.");
+#          }
+#      i.e. only the app's own fragments may be shown, which keeps the security
+#      check the method exists for. The smali was produced by javac+d8+baksmali.
+# =============================================================================
+project: app
+
+file: smali/de/stohelit/audiobookplayer/MainPreferences.smali
+sha256: 7e732c6340fc7bf37fe0238b93c1e29d8b23eb83455e2b234a0a4577fd90736c
+insert-after 3731
++
++# community 1.0.3: required for targetSdk >= 19 (PreferenceActivity fragment check); only app fragments allowed
++.method protected isValidFragment(Ljava/lang/String;)Z
++    .registers 3
++
++
++    if-eqz p1, :cond_c
++
++    const-string v0, "de.stohelit.audiobookplayer."
++
++    invoke-virtual {p1, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
++
++    move-result p1
++
++    if-eqz p1, :cond_c
++
++    const/4 p1, 0x1
++
++    goto :goto_d
++
++    :cond_c
++    const/4 p1, 0x0
++
++    :goto_d
++    return p1
++.end method
+
+file: smali/de/stohelit/audiobookplayer/HelpPreferences.smali
+sha256: fad2c75dde40aa5e70aecfe1ce324961be7164141027593c3cf4361383f31e41
+insert-after 470
++
++# community 1.0.3: required for targetSdk >= 19 (PreferenceActivity fragment check); only app fragments allowed
++.method protected isValidFragment(Ljava/lang/String;)Z
++    .registers 3
++
++
++    if-eqz p1, :cond_c
++
++    const-string v0, "de.stohelit.audiobookplayer."
++
++    invoke-virtual {p1, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
++
++    move-result p1
++
++    if-eqz p1, :cond_c
++
++    const/4 p1, 0x1
++
++    goto :goto_d
++
++    :cond_c
++    const/4 p1, 0x0
++
++    :goto_d
++    return p1
++.end method

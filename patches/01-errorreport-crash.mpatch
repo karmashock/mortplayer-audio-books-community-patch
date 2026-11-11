@@ -1,0 +1,140 @@
+# =============================================================================
+# 01-errorreport-crash.mpatch  -  "MortPlayer closes right after starting"
+# -----------------------------------------------------------------------------
+# Credit: this fix is by crazyfury on XDA (MortPlayer thread, page 24, 2020).
+#
+# Problem: MainPlayer.errorReport() asks Java for the default crash handler and
+#          blindly casts it to MortPlayer's own ReportExceptionHandler. On newer
+#          Android, WebView/Chromium replaces that handler with its own
+#          (org.chromium.base.JavaExceptionReporter), so the cast throws
+#          ClassCastException and the app dies at start-up.
+# Fix:     check "instanceof" first; if it is someone else's handler, just log
+#          it and skip the "send error report?" dialog instead of crashing.
+#
+# Content note: the dialog-building lines below look like the original ones
+#          because crazyfury's version uses different register numbers (v2->v4,
+#          v3->v5), so every line that touches those registers had to change.
+#          Only the NEW lines are stored here; the removed lines are not.
+# =============================================================================
+project: app
+
+file: smali/de/stohelit/audiobookplayer/MainPlayer.smali
+sha256: 216c760d876c71d6a37a5c510edf18ff291a335c58c4d6686ff8e862cadffe22
+replace 3831
++    # community patch 01 (fix by crazyfury, XDA): only treat the default crash handler as
++    # ReportExceptionHandler when it really is one; WebView/Chromium installs its own handler
++    # and the old unchecked cast crashed the app on start. Registers renamed, logic as in his post.
++    .locals 6
++    .annotation build Landroid/annotation/SuppressLint;
++        value = {
++            "ResourceType"
++        }
++    .end annotation
+replace 3834
++    .line 65
++    const/4 v1, 0x1
++
++    .line 66
++    .local v1, "isInstance":Z
+replace 3837-3854
++    move-result-object v3
++
++    .line 67
++    .local v3, "obj":Ljava/lang/Thread$UncaughtExceptionHandler;
++    instance-of v4, v3, Lde/stohelit/ReportExceptionHandler;
++
++    if-nez v4, :cond_0
++
++    .line 69
++    const/4 v1, 0x0
++
++    .line 70
++    invoke-virtual {v3}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
++
++    move-result-object v4
++
++    invoke-virtual {v4}, Ljava/lang/Class;->toString()Ljava/lang/String;
++
++    move-result-object v2
++
++    .line 71
++    .local v2, "msg":Ljava/lang/String;
++    const-string/jumbo v4, "MortPlayer Audio Books -> wrongInstance"
++
++    invoke-static {v4, v2}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
++
++    .line 74
++    .end local v2    # "msg":Ljava/lang/String;
++    :cond_0
++    if-eqz v1, :cond_1
++
++    invoke-static {}, Ljava/lang/Thread;->getDefaultUncaughtExceptionHandler()Ljava/lang/Thread$UncaughtExceptionHandler;
++
++    move-result-object v4
++
++    check-cast v4, Lde/stohelit/ReportExceptionHandler;
++
++    invoke-virtual {v4}, Lde/stohelit/ReportExceptionHandler;->errorReportExists()Z
++
++    move-result v4
++
++    if-eqz v4, :cond_1
++
++    .line 75
++    new-instance v4, Landroid/app/AlertDialog$Builder;
++
++    invoke-direct {v4, p0}, Landroid/app/AlertDialog$Builder;-><init>(Landroid/content/Context;)V
++
++    invoke-virtual {v4}, Landroid/app/AlertDialog$Builder;->create()Landroid/app/AlertDialog;
+replace 3858-3904
++    .line 76
++    .local v0, "alertDialog":Landroid/app/AlertDialog;
++    const v4, 0x7f080231
++
++    invoke-virtual {v0, v4}, Landroid/app/AlertDialog;->setTitle(I)V
++
++    .line 77
++    const v4, 0x7f080232
++
++    invoke-virtual {p0, v4}, Lde/stohelit/audiobookplayer/MainPlayer;->getString(I)Ljava/lang/String;
++
++    move-result-object v4
++
++    invoke-virtual {v0, v4}, Landroid/app/AlertDialog;->setMessage(Ljava/lang/CharSequence;)V
++
++    .line 78
++    const/4 v4, 0x0
++
++    invoke-virtual {v0, v4}, Landroid/app/AlertDialog;->setCancelable(Z)V
++
++    .line 79
++    const v4, 0x7f08022f
++
++    invoke-virtual {p0, v4}, Lde/stohelit/audiobookplayer/MainPlayer;->getString(I)Ljava/lang/String;
++
++    move-result-object v4
++
++    new-instance v5, Lde/stohelit/audiobookplayer/MainPlayer$39;
++
++    invoke-direct {v5, p0}, Lde/stohelit/audiobookplayer/MainPlayer$39;-><init>(Lde/stohelit/audiobookplayer/MainPlayer;)V
++
++    invoke-virtual {v0, v4, v5}, Landroid/app/AlertDialog;->setButton(Ljava/lang/CharSequence;Landroid/content/DialogInterface$OnClickListener;)V
++
++    .line 84
++    const v4, 0x7f080230
++
++    invoke-virtual {p0, v4}, Lde/stohelit/audiobookplayer/MainPlayer;->getString(I)Ljava/lang/String;
++
++    move-result-object v4
++
++    new-instance v5, Lde/stohelit/audiobookplayer/MainPlayer$40;
++
++    invoke-direct {v5, p0}, Lde/stohelit/audiobookplayer/MainPlayer$40;-><init>(Lde/stohelit/audiobookplayer/MainPlayer;)V
++
++    invoke-virtual {v0, v4, v5}, Landroid/app/AlertDialog;->setButton2(Ljava/lang/CharSequence;Landroid/content/DialogInterface$OnClickListener;)V
++
++    .line 89
+replace 3907-3909
++    .line 91
++    .end local v0    # "alertDialog":Landroid/app/AlertDialog;
++    :cond_1
