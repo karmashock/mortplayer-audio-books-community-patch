@@ -1,5 +1,9 @@
 # MortPlayer Audio Books – community patch kit (1.0.1 → 1.0.3-community)
 
+Disclaimer- I 100% just gave the original APK to Grok and with a little trial and error Grok did everything really. I plugged in my phone so debug commands could be sent. I told the bot when a bug was fixed or not. I informed it of NEW bugs that showed up when it fixed old ones. That was my contribution to the process. I've loved and used this program on my phone for many years and it has gotten increasingly broken as Android updates. Believe it or not, I was still using it and suffering with the bugs. Got grok bot. Threw this challenge at it as a lark. And it more or less one-shotted about three or four bugs with basically no input from me. I tried to reach out to the original author. No response. He has a paypal and I threw some money into as final thanks. Hope he's okay. Anyway, EVERYTHING after this point is written by Grok. I asked it to make a kit for people, none of the author's code in the kit, lots of comments in the code so people can look through it. Use this at your own risk. I have no idea what Grok did. I have not looked at what it did. I only know it works. And frankly, that's good enough for me. I don't care. Good luck. Have fun.
+
+Oh, one more thing, still me. You'll want to set a few things in the mort player audio books settings to avoid some problems. Preferences > headset > Use as Default Player. Helps when the app isn't on screen. The other thing you want to do is set the battery usage to 'unrestricted'. Okay, that's it. Thanks again to Mirko "Mort" Schenk and if you figure out how to get access to your paypal account there's a little money waiting for you.
+
 MortPlayer Audio Books by Mirko "Mort" Schenk was a much-loved Android audiobook player.
 It hasn't been updated since 2012 and no longer works properly on modern phones.
 This kit fixes your **own copy** of the original app on your **own computer**.
