@@ -1,0 +1,15 @@
+# created by the scripts - never commit or share these
+work/
+out/
+build/
+my-signing-key/
+tools/*.jar
+
+# built apps and signing material (including the key the script generates)
+*.apk
+*.jks
+*.keystore
+
+# local Python bytecode
+__pycache__/
+*.pyc

@@ -1,0 +1,4 @@
+Put the two downloads here (see ../README.md, "What you need"):
+  apktool_2.4.0.jar
+  uber-apk-signer-1.3.0.jar
+They are not included in the kit.

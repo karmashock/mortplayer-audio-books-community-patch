@@ -1,0 +1,29 @@
+# =============================================================================
+# 06-target-sdk-24.mpatch  -  installable on Android 14, 15 and 16
+# -----------------------------------------------------------------------------
+# Why: Android 14 blocks installing apps that target SDK < 23, and Android 15+
+#      blocks < 24. MortPlayer 1.0.1 targets 14. 24 is the lowest target that
+#      installs everywhere, and it keeps the old "legacy storage" behaviour.
+# What:
+#   * apktool.yml: targetSdkVersion 14 -> 24, versionCode 200014 -> 200016,
+#     versionName 1.0.1 -> 1.0.3-community (so you can tell the builds apart).
+#   * AndroidManifest.xml: declare READ_EXTERNAL_STORAGE (requested by patch 03)
+#     and READ_MEDIA_AUDIO (newer Androids' name for "music and audio").
+# How it is used: this works on a FULL apktool decode ("manifest" project). The
+#   build script compiles that project only to harvest the binary
+#   AndroidManifest.xml and drops it into the "app" project; everything else
+#   (resources.arsc, images, layouts) stays byte-for-byte untouched.
+# =============================================================================
+project: manifest
+
+file: apktool.yml
+# No checksum: the first line of apktool.yml contains your APK's file name.
+set: targetSdkVersion '24'
+set: versionCode '200016'
+set: versionName 1.0.3-community
+
+file: AndroidManifest.xml
+sha256: 24eccfeaf082af64db8d231301d6717eea865b13b845b4a958573513f6ce5f4e
+insert-after 134
++    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
++    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>

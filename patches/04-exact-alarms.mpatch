@@ -1,0 +1,20 @@
+# =============================================================================
+# 04-exact-alarms.mpatch  -  alarm clock and snooze fire on time again
+# -----------------------------------------------------------------------------
+# Why: with targetSdkVersion >= 19, AlarmManager.set() becomes "inexact" and
+#      Android may delay it by many minutes (and Doze delays it even more).
+# Fix: the two calls used for the wake-up alarm and snooze now go to our
+#      AlarmCompat.setWakeAlarm(), with exactly the same arguments/registers.
+#      AlarmCompat uses setAlarmClock() on Android 5+, setExact() on 4.4, and
+#      the old set() on anything older or if something goes wrong.
+# =============================================================================
+project: app
+
+file: smali/de/stohelit/audiobookplayer/playback/PlaybackService$8.smali
+sha256: 71b09cf76684f0fd00ba715ad255b60bc3d523ebba5a918ef4d13ec30b25f458
+replace 8229
++    # MortAlarm: exact alarm (community build)
++    invoke-static {v2, v4, v0, v1, v5}, Lde/stohelit/audiobookplayer/playback/AlarmCompat;->setWakeAlarm(Landroid/app/AlarmManager;IJLandroid/app/PendingIntent;)V
+replace 10036
++    # MortAlarm: exact alarm (community build)
++    invoke-static {v0, v8, v5, v6, v7}, Lde/stohelit/audiobookplayer/playback/AlarmCompat;->setWakeAlarm(Landroid/app/AlarmManager;IJLandroid/app/PendingIntent;)V

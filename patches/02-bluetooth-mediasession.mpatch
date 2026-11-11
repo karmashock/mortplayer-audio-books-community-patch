@@ -1,0 +1,45 @@
+# =============================================================================
+# 02-bluetooth-mediasession.mpatch  -  Bluetooth / headset / lock-screen buttons
+# -----------------------------------------------------------------------------
+# Problem: MortPlayer (2012) uses the old RemoteControlClient API for media
+#          buttons. Since Android 5 that API is emulated, and on Android 12-16
+#          play/pause/next from Bluetooth headsets, car kits and the lock screen
+#          stop working (the emulated session grabs the keys and drops them).
+# Fix:     four tiny hooks in RemoteControlWrapperICS call our new
+#          MediaSessionHelper class (see new-files/ and source/):
+#            open()            -> MediaSessionHelper.takeOver(): on Android 5+
+#                                 start a real MediaSession and SKIP the legacy
+#                                 path; on older phones fall through unchanged.
+#            close()           -> MediaSessionHelper.close()
+#            setMetadata(...)  -> mirror title/artist/album/duration to the session
+#            setPlaybackState  -> mirror playing/paused to the session
+#          The session's callbacks send the same intents the old buttons sent,
+#          so the player itself needs no changes.
+# =============================================================================
+project: app
+
+file: smali/de/stohelit/audiobookplayer/playback/RemoteControlWrapperICS.smali
+sha256: 40e7d23c7b055243965f6a7a3267a59bb667f24d988c38373fc4296aef724fec
+insert-after 32
++    # MortBT: mirror to MediaSession
++    invoke-static {}, Lde/stohelit/audiobookplayer/playback/MediaSessionHelper;->close()V
++
+insert-after 59
++    # MortBT test2: on API 21+ use our MediaSession only; skip legacy RemoteControlClient path
++    invoke-static {p1}, Lde/stohelit/audiobookplayer/playback/MediaSessionHelper;->takeOver(Landroid/content/Context;)Z
++
++    move-result v0
++
++    if-eqz v0, :mortbt_legacy
++
++    return-void
++
++    :mortbt_legacy
+insert-after 131
++    # MortBT: mirror to MediaSession
++    invoke-static/range {p1 .. p7}, Lde/stohelit/audiobookplayer/playback/MediaSessionHelper;->setMetadata(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIJ)V
++
+insert-after 379
++    # MortBT: mirror to MediaSession
++    invoke-static {p1}, Lde/stohelit/audiobookplayer/playback/MediaSessionHelper;->setPlaybackState(I)V
++
